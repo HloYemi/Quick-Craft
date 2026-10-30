@@ -1,9 +1,10 @@
 package com.sxilverr.quickcraft.storage;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
-public record LabeledSource(String id, String name, ItemStack icon, BlockPos pos, ItemSource source,
+public record LabeledSource(String id, Component name, ItemStack icon, BlockPos pos, ItemSource source,
                             boolean depositable) {
     public static final String SELF_ID = "self";
 
@@ -11,8 +12,8 @@ public record LabeledSource(String id, String name, ItemStack icon, BlockPos pos
         return SELF_ID.equals(id);
     }
 
-    public String pickerLabel() {
+    public Component pickerLabel() {
         if (pos == null) return name;
-        return name + " (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")";
+        return name.copy().append(" (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")");
     }
 }

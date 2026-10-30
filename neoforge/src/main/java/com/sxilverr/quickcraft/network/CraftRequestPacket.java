@@ -99,7 +99,7 @@ public record CraftRequestPacket(ItemStack target, int quantity, Map<ItemKey, Re
                     msg.ingredientChoices(), msg.destinationId());
         } catch (Throwable t) {
             QuickCraftCommon.LOGGER.error("Quick Craft craft failed for {}", msg.target(), t);
-            player.displayClientMessage(Component.literal("Quick Craft: crafting failed with an error, check the game log")
+            player.displayClientMessage(Component.translatable("quickcraft.chat.error")
                     .withStyle(ChatFormatting.RED), false);
             return;
         }

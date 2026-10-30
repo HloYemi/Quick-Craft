@@ -5,7 +5,6 @@ import com.sxilverr.quickcraft.DepositBlacklist;
 import com.tom.storagemod.block.AbstractStorageTerminalBlock;
 import com.tom.storagemod.block.AbstractStorageTerminalBlock.TerminalPos;
 import com.tom.storagemod.item.AdvWirelessTerminalItem;
-import com.tom.storagemod.tile.CraftingTerminalBlockEntity;
 import com.tom.storagemod.tile.InventoryConnectorBlockEntity;
 import com.tom.storagemod.tile.StorageTerminalBlockEntity;
 import com.tom.storagemod.util.IProxy;
@@ -13,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -40,9 +40,8 @@ public final class TomsStorageItemSource {
             BlockPos pos = be.getBlockPos();
             IItemHandler handler = terminalHandler(level, pos);
             if (handler == null || !seen.add(handler)) continue;
-            String name = be instanceof CraftingTerminalBlockEntity ? "Crafting Terminal" : "Storage Terminal";
             ItemStack icon = new ItemStack(be.getBlockState().getBlock());
-            out.add(new LabeledSource("toms:" + ItemSourceFactory.posKey(pos), name, icon, pos,
+            out.add(new LabeledSource("toms:" + ItemSourceFactory.posKey(pos), icon.getHoverName(), icon, pos,
                     new HandlerItemSource(handler, icon), depositable(be, blacklist)));
         }
         for (BlockEntity be : tomsBlocks) {
@@ -51,7 +50,7 @@ public final class TomsStorageItemSource {
             if (handler == null || !seen.add(handler)) continue;
             BlockPos pos = be.getBlockPos();
             ItemStack icon = new ItemStack(be.getBlockState().getBlock());
-            out.add(new LabeledSource("toms:" + ItemSourceFactory.posKey(pos), "Inventory Connector", icon, pos,
+            out.add(new LabeledSource("toms:" + ItemSourceFactory.posKey(pos), icon.getHoverName(), icon, pos,
                     new HandlerItemSource(handler, icon), depositable(be, blacklist)));
         }
     }
@@ -64,7 +63,9 @@ public final class TomsStorageItemSource {
             IItemHandler handler = boundHandler(player, stack);
             if (handler == null || !seen.add(handler)) continue;
             ItemStack icon = stack.copy();
-            out.add(new LabeledSource("tomsw:" + i, "Storage Terminal (Wireless)", icon, null,
+            Component name = Component.translatable("quickcraft.source.wireless",
+                    Component.translatable("block.toms_storage.ts.storage_terminal"));
+            out.add(new LabeledSource("tomsw:" + i, name, icon, null,
                     new HandlerItemSource(handler, icon), true));
         }
     }

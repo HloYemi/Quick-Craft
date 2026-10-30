@@ -2,6 +2,8 @@ package com.sxilverr.quickcraft.network;
 
 import com.sxilverr.quickcraft.client.ClientDepositTargets;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
@@ -29,7 +31,7 @@ public record DepositTargetsResponsePacket(List<ClientDepositTargets.Target> ent
         for (int i = 0; i < n; i++) {
             ClientDepositTargets.Target e = msg.entries().get(i);
             buf.writeUtf(e.id());
-            buf.writeUtf(e.label());
+            ComponentSerialization.TRUSTED_STREAM_CODEC.encode(buf, e.label());
             ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, e.icon());
             buf.writeInt(e.freeSlots());
             buf.writeInt(e.totalSlots());
@@ -41,7 +43,7 @@ public record DepositTargetsResponsePacket(List<ClientDepositTargets.Target> ent
         List<ClientDepositTargets.Target> entries = new ArrayList<>(n);
         for (int i = 0; i < n; i++) {
             String id = buf.readUtf();
-            String label = buf.readUtf();
+            Component label = ComponentSerialization.TRUSTED_STREAM_CODEC.decode(buf);
             ItemStack icon = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
             int freeSlots = buf.readInt();
             int totalSlots = buf.readInt();

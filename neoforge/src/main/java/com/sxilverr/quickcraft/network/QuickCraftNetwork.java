@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class QuickCraftNetwork {
-    private static final String PROTOCOL = "2";
+    private static final String PROTOCOL = "3";
 
     private QuickCraftNetwork() {
     }

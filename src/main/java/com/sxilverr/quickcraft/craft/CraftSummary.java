@@ -1,17 +1,18 @@
 package com.sxilverr.quickcraft.craft;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-public record CraftSummary(int crafted, int requested, String missingStation,
+public record CraftSummary(int crafted, int requested, Component missingStation,
                            List<Placement> placements, int dropped, int byproducts,
                            ItemStack blocked, int blockedCount, boolean treeLimited,
                            List<CraftPlanner.Blocker> blockers) {
-    public record Placement(String where, int count) {
+    public record Placement(Component where, int count) {
     }
 
-    public CraftSummary(int crafted, int requested, String missingStation,
+    public CraftSummary(int crafted, int requested, Component missingStation,
                         List<Placement> placements, int dropped, int byproducts) {
         this(crafted, requested, missingStation, placements, dropped, byproducts, ItemStack.EMPTY, 0, false, List.of());
     }

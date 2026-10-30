@@ -35,7 +35,7 @@ public final class AlchBagSource {
             IItemHandler handler = bag(provider, color);
             if (handler == null) continue;
             ItemStack icon = stack.copyWithCount(1);
-            out.add(new LabeledSource("pebag:" + color.getName(), icon.getHoverName().getString(), icon, null,
+            out.add(new LabeledSource("pebag:" + color.getName(), icon.getHoverName(), icon, null,
                     new BagSource(handler, icon, provider, color, player), true));
         }
     }

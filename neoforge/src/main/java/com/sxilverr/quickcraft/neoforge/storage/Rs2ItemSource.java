@@ -15,6 +15,7 @@ import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkN
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -50,7 +51,7 @@ public final class Rs2ItemSource implements ItemSource {
         if (!seenNetworks.add(network)) return null;
         ItemStack icon = diskDriveIcon();
         BlockPos pos = be.getBlockPos();
-        return new LabeledSource("rs:" + ItemSourceFactory.posKey(pos), "RS System", icon, pos,
+        return new LabeledSource("rs:" + ItemSourceFactory.posKey(pos), Component.translatable("quickcraft.source.rs_system"), icon, pos,
                 new Rs2ItemSource(network, new PlayerActor(player), icon), true);
     }
 

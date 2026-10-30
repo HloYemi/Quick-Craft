@@ -19,7 +19,7 @@ public final class StationIcons {
 
     public static String name(Station station) {
         ItemStack icon = icon(station);
-        return icon.isEmpty() ? station.displayName() : icon.getHoverName().getString();
+        return (icon.isEmpty() ? station.displayName() : icon.getHoverName()).getString();
     }
 
     private static ItemStack resolve(Station station) {

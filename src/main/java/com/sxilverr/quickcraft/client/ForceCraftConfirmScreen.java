@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -25,7 +26,6 @@ public class ForceCraftConfirmScreen extends Screen {
     private static final int MAX_ROWS = 7;
     private static final int MAX_BLOCKER_LINES = 4;
     private static final int PANEL_MIN_W = 224;
-    private static final String EMPTY_LINE = "Not enough materials to make any items";
 
     private final Screen parent;
     private final ItemStack target;
@@ -41,7 +41,7 @@ public class ForceCraftConfirmScreen extends Screen {
     public ForceCraftConfirmScreen(Screen parent, ItemStack target, int quantity,
                                    Map<ItemKey, ResourceLocation> overrides, Map<String, Item> ingredientChoices,
                                    CraftPreview.Result preview) {
-        super(Component.literal("Force Craft?"));
+        super(Component.translatable("quickcraft.force.title"));
         this.parent = parent;
         this.target = target;
         this.quantity = quantity;
@@ -55,9 +55,9 @@ public class ForceCraftConfirmScreen extends Screen {
         forceX = this.width / 2 - FORCE_W / 2;
         forceY = this.height / 2 - 34 + blockerLines() * 10;
 
-        addRenderableWidget(Button.builder(Component.literal("Force Craft"), b -> forceCraft())
+        addRenderableWidget(Button.builder(Component.translatable("quickcraft.force.button"), b -> forceCraft())
                 .bounds(forceX, forceY, FORCE_W, FORCE_H).build());
-        addRenderableWidget(Button.builder(Component.literal("Back"), b -> onClose())
+        addRenderableWidget(Button.builder(Component.translatable("gui.back"), b -> onClose())
                 .bounds(this.width / 2 - 50, this.height - 36, 100, 20).build());
     }
 
@@ -76,13 +76,12 @@ public class ForceCraftConfirmScreen extends Screen {
         //?}
 
         int cx = this.width / 2;
-        g.drawCenteredString(this.font, "You do not have enough items to craft this fully",
+        g.drawCenteredString(this.font, I18n.get("quickcraft.force.not_enough"),
                 cx, this.height / 2 - 78, 0xFFFF5555);
 
-        String sub = "Can craft " + preview.craftable() + " of " + quantity + " × "
-                + target.getHoverName().getString();
+        String sub = I18n.get("quickcraft.force.can_craft", preview.craftable(), quantity, target.getHoverName().getString());
         g.drawCenteredString(this.font, sub, cx, this.height / 2 - 62, 0xFFC0C0C0);
-        g.drawCenteredString(this.font, "Force Craft makes as many items as your materials allow.",
+        g.drawCenteredString(this.font, I18n.get("quickcraft.force.explain"),
                 cx, this.height / 2 - 50, 0xFF909090);
         renderBlockers(g, cx);
 
@@ -105,13 +104,13 @@ public class ForceCraftConfirmScreen extends Screen {
         int shown = Math.min(list.size(), MAX_BLOCKER_LINES);
         for (int i = 0; i < shown; i++) {
             CraftPlanner.Blocker blocker = list.get(i);
-            String line = "Missing " + blocker.missing() + "x " + trim(blocker.key().toStack(1).getHoverName().getString(), 28)
-                    + blocker.reason().label;
+            Component line = Component.translatable("quickcraft.force.missing", blocker.missing(),
+                    trim(blocker.key().toStack(1).getHoverName().getString(), 28)).append(blocker.reason().suffix());
             g.drawCenteredString(this.font, line, cx, y, 0xFFFF5555);
             y += 10;
         }
         if (list.size() > shown) {
-            g.drawCenteredString(this.font, "… +" + (list.size() - shown) + " more", cx, y, 0xFF909090);
+            g.drawCenteredString(this.font, "… " + I18n.get("quickcraft.more", list.size() - shown), cx, y, 0xFF909090);
         }
     }
 
@@ -128,7 +127,7 @@ public class ForceCraftConfirmScreen extends Screen {
         boolean more = list.size() > shown;
         int bodyRows = list.isEmpty() ? 1 : shown;
         int panelH = headerH + bodyRows * rowH + (more ? 11 : 0) + 4;
-        String moreLabel = "… +" + (list.size() - shown) + " more";
+        String moreLabel = "… " + I18n.get("quickcraft.more", list.size() - shown);
         int panelW = panelWidth(list, shown, more, moreLabel);
 
         int px = cx - panelW / 2;
@@ -136,10 +135,10 @@ public class ForceCraftConfirmScreen extends Screen {
 
         g.fill(px, py, px + panelW, py + panelH, COLOR_PANEL);
         g.fill(px, py, px + panelW, py + headerH, COLOR_PANEL_HEAD);
-        g.drawString(this.font, "Acquire items:", px + 6, py + 4, 0xFFFFFFFF, false);
+        g.drawString(this.font, I18n.get("quickcraft.force.acquire"), px + 6, py + 4, 0xFFFFFFFF, false);
 
         if (list.isEmpty()) {
-            g.drawString(this.font, EMPTY_LINE, px + 8, py + headerH + 5, 0xFFAAAAAA, false);
+            g.drawString(this.font, I18n.get("quickcraft.force.empty"), px + 8, py + headerH + 5, 0xFFAAAAAA, false);
             return;
         }
 
@@ -157,9 +156,9 @@ public class ForceCraftConfirmScreen extends Screen {
     }
 
     private int panelWidth(List<CraftPreview.Gain> list, int shown, boolean more, String moreLabel) {
-        int w = this.font.width("Acquire items:") + 12;
+        int w = this.font.width(I18n.get("quickcraft.force.acquire")) + 12;
         if (list.isEmpty()) {
-            w = Math.max(w, this.font.width(EMPTY_LINE) + 16);
+            w = Math.max(w, this.font.width(I18n.get("quickcraft.force.empty")) + 16);
         } else {
             for (int i = 0; i < shown; i++) {
                 w = Math.max(w, this.font.width(rowLabel(list.get(i))) + 34);

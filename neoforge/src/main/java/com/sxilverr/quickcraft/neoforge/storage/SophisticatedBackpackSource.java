@@ -17,7 +17,7 @@ public final class SophisticatedBackpackSource {
     public static void addBackpacks(ServerPlayer player, List<LabeledSource> out) {
         SbBackpacks.forEach(player, (backpack, wrapper, inventoryName, slot) -> {
             ItemStack icon = backpack.copy();
-            out.add(new LabeledSource("sbp:" + inventoryName + ":" + slot, backpack.getHoverName().getString(),
+            out.add(new LabeledSource("sbp:" + inventoryName + ":" + slot, backpack.getHoverName(),
                     icon, null, new HandlerItemSource(wrapper.getInventoryHandler(), icon), true));
         });
     }
@@ -28,7 +28,7 @@ public final class SophisticatedBackpackSource {
         if (wrapper == null) return;
         ItemStack backpackStack = wrapper.getBackpack();
         ItemStack icon = backpackStack.isEmpty() ? new ItemStack(be.getBlockState().getBlock()) : backpackStack.copy();
-        out.add(new LabeledSource("sbpb:" + ItemSourceFactory.posKey(pos), icon.getHoverName().getString(), icon, pos,
+        out.add(new LabeledSource("sbpb:" + ItemSourceFactory.posKey(pos), icon.getHoverName(), icon, pos,
                 new HandlerItemSource(wrapper.getInventoryHandler(), icon), true));
     }
 }

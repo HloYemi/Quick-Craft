@@ -56,15 +56,15 @@ public final class QuickCraftConfig {
         preferredItems = b.comment("Priority list of item ids to prefer when a recipe ingredient or recipe is ambiguous (such as tags).",
                         "Earlier entries win, and recipes that use these items are favored.",
                         "Leave empty to use the built-in defaults.")
-                .defineList("preferredItems", DEFAULT_PREFERRED_IDS, QuickCraftConfig::validateItemId);
+                .defineList("preferredItems", DEFAULT_PREFERRED_IDS, "minecraft:oak_planks", QuickCraftConfig::validateItemId);
         containerScanRange = b.comment("Block radius around the player to pull items from and deposit results into. 0 disables nearby containers.")
                 .defineInRange("containerScanRange", 8, 0, 64);
         depositBlacklist = b.comment("Blocks that will not be shown as options to deposit results into.",
                         "Entries can be a block id (ae2:charger), a whole mod id (ae2),",
                         "or a block tag prefixed with @ or # (@chargers or #forge:chargers).")
-                .defineList("depositBlacklist", DEFAULT_DEPOSIT_BLACKLIST, QuickCraftConfig::validateBlacklistEntry);
+                .defineList("depositBlacklist", DEFAULT_DEPOSIT_BLACKLIST, "modid:block", QuickCraftConfig::validateBlacklistEntry);
         extraSources = b.comment("Extra block or item ids to pull from and deposit into. They must hold an item inventory.")
-                .defineList("extraSources", List.of(), QuickCraftConfig::validateResourceId);
+                .defineList("extraSources", List.of(), "modid:block", QuickCraftConfig::validateResourceId);
         collapseOwnedItems = b.comment("Items you already have enough of are not expanded into their own recipe tree.")
                 .define("collapseOwnedItems", true);
         craftSoundEnabled = b.comment("Play a sound when a Quick Craft finishes crafting something.")

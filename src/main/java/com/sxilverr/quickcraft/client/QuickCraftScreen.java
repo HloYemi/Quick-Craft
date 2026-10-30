@@ -33,8 +33,10 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -113,15 +115,17 @@ public class QuickCraftScreen extends Screen {
     private static final ResourceLocation VIEW_TREE = new ResourceLocation("quickcraft", "textures/gui/view_tree.png");
     private static final ResourceLocation HIDE_TREE = new ResourceLocation("quickcraft", "textures/gui/hide_tree.png");
     //?}
-    private static final String[] COPY_OPTIONS = {"Copy full list", "Copy missing materials", "Copy material shortages"};
+    private static final String[] COPY_OPTIONS = {"quickcraft.copy.full", "quickcraft.copy.missing", "quickcraft.copy.shortages"};
     private static final String[] CONTROL_LINES = {
-            "Drag/Scroll: pan/zoom",
-            "Left-click: swap recipe",
-            "Middle-click: view item's tree",
-            "W/S or Up/Down: switch tag item",
-            "Right-click: show/hide recipe",
-            "Ctrl-click: reset preferences",
+            "quickcraft.controls.pan",
+            "quickcraft.controls.swap",
+            "quickcraft.controls.view_tree",
+            "quickcraft.controls.switch_tag",
+            "quickcraft.controls.toggle_recipe",
+            "quickcraft.controls.reset",
     };
+    private static final String[] LEGEND = {"quickcraft.legend.target", "quickcraft.legend.have", "quickcraft.legend.crafted",
+            "quickcraft.legend.missing", "quickcraft.legend.no_station"};
 
     private ItemStack target;
     private int quantity;
@@ -259,9 +263,9 @@ public class QuickCraftScreen extends Screen {
         ingredientChoices.clear();
         ingredientChoices.putAll(RecipePreferences.ingredientChoices());
 
-        quantityBox = new EditBox(this.font, this.width - 146, 4, 46, 16, Component.literal("Quantity"));
+        quantityBox = new EditBox(this.font, this.width - 146, 4, 46, 16, Component.translatable("quickcraft.screen.quantity"));
         quantityBox.setValue(String.valueOf(quantity));
-        quantityBox.setFilter(s -> s.matches("\\d{0,6}") || s.equalsIgnoreCase("max") || s.matches("(?i)max \\(\\d+\\)"));
+        quantityBox.setFilter(s -> suppressResponder || s.matches("\\d{0,6}"));
         quantityBox.setResponder(this::onQuantityChanged);
         addRenderableWidget(quantityBox);
 
@@ -272,21 +276,21 @@ public class QuickCraftScreen extends Screen {
                 .bounds(this.width - 98, 4, 16, 16).build();
         addRenderableWidget(plusButton);
 
-        craftMaxButton = Button.builder(Component.literal("Craft Max"), b -> onCraftMax())
+        craftMaxButton = Button.builder(Component.translatable("quickcraft.screen.craft_max"), b -> onCraftMax())
                 .bounds(this.width - 78, 4, 72, 16).build();
         addRenderableWidget(craftMaxButton);
 
-        addRenderableWidget(Button.builder(Component.literal("Confirm Craft"), b -> onConfirm())
+        addRenderableWidget(Button.builder(Component.translatable("quickcraft.screen.confirm"), b -> onConfirm())
                 .bounds(this.width - 124, this.height - 28, 116, 22).build());
-        addRenderableWidget(Button.builder(Component.literal(history.isEmpty() ? "Close" : "Back"), b -> onClose())
+        addRenderableWidget(Button.builder(Component.translatable(history.isEmpty() ? "quickcraft.screen.close" : "gui.back"), b -> onClose())
                 .bounds(8, this.height - 28, 60, 22).build());
-        addRenderableWidget(Button.builder(Component.literal("Ingredients"), b -> toggleSummary())
+        addRenderableWidget(Button.builder(Component.translatable("quickcraft.screen.ingredients"), b -> toggleSummary())
                 .bounds(this.width / 2 - 172, this.height - 52, 112, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> onRefresh())
+        addRenderableWidget(Button.builder(Component.translatable("quickcraft.screen.refresh"), b -> onRefresh())
                 .bounds(this.width / 2 - 56, this.height - 52, 112, 20)
-                .tooltip(Tooltip.create(Component.literal("Scan for items available"))).build());
+                .tooltip(Tooltip.create(Component.translatable("quickcraft.screen.refresh.tooltip"))).build());
         if (Services.PLATFORM.isModLoaded("jeresources")) {
-            showMobsButton = Button.builder(Component.literal(showMobs ? "Hide Mobs" : "Show Mobs"), b -> toggleShowMobs())
+            showMobsButton = Button.builder(Component.translatable(showMobs ? "quickcraft.screen.hide_mobs" : "quickcraft.screen.show_mobs"), b -> toggleShowMobs())
                     .bounds(this.width / 2 + 62, this.height - 52, 96, 20).build();
             addRenderableWidget(showMobsButton);
         }
@@ -335,8 +339,8 @@ public class QuickCraftScreen extends Screen {
 
     private void renderEmc(GuiGraphics g) {
         if (emcTotalText == null && emcCostText == null) return;
-        String totalPart = emcTotalText == null ? "" : "EMC: " + emcTotalText;
-        String costPart = emcCostText == null ? "" : "Uses " + emcCostText;
+        String totalPart = emcTotalText == null ? "" : I18n.get("quickcraft.screen.emc_total", emcTotalText);
+        String costPart = emcCostText == null ? "" : I18n.get("quickcraft.screen.emc_uses", emcCostText);
         String gap = (!totalPart.isEmpty() && !costPart.isEmpty()) ? "   " : "";
 
         int w = this.font.width(totalPart + gap + costPart);
@@ -367,7 +371,7 @@ public class QuickCraftScreen extends Screen {
 
     private void toggleShowMobs() {
         showMobs = !showMobs;
-        showMobsButton.setMessage(Component.literal(showMobs ? "Hide Mobs" : "Show Mobs"));
+        showMobsButton.setMessage(Component.translatable(showMobs ? "quickcraft.screen.hide_mobs" : "quickcraft.screen.show_mobs"));
         hoveredView = null;
         playClick();
         if (root != null) {
@@ -508,7 +512,7 @@ public class QuickCraftScreen extends Screen {
         maxMode = shift && QuickCraftConfig.shiftCraftIsMax();
         quantity = shift ? (maxMode ? CraftPlanner.MAX_QUANTITY : QuickCraftConfig.shiftCraftAmount()) : baseQuantity;
         suppressResponder = true;
-        quantityBox.setValue(maxMode ? "Max" : String.valueOf(quantity));
+        quantityBox.setValue(maxMode ? I18n.get("quickcraft.max") : String.valueOf(quantity));
         quantityBox.setEditable(!shift);
         minusButton.active = !shift;
         plusButton.active = !shift;
@@ -551,7 +555,7 @@ public class QuickCraftScreen extends Screen {
         if (maxMode) {
             qty = Math.max(1, planFor(CraftPlanner.MAX_QUANTITY, stations, collapse, hideLoop, null, false).craftable());
             suppressResponder = true;
-            quantityBox.setValue("Max (" + qty + ")");
+            quantityBox.setValue(I18n.get("quickcraft.max_count", qty));
             suppressResponder = false;
         }
         CraftPlanner.Plan plan = planFor(qty, stations, collapse, hideLoop, null, true);
@@ -696,7 +700,7 @@ public class QuickCraftScreen extends Screen {
             long unit = emcSource.value(stack);
             if (unit <= 0L) continue;
             if (!emcSource.learned(stack)) {
-                summaryEmcText.put(entry.getKey(), "not learned");
+                summaryEmcText.put(entry.getKey(), I18n.get("quickcraft.ingredients.not_learned"));
                 summaryEmcAffordable.put(entry.getKey(), false);
                 continue;
             }
@@ -806,12 +810,15 @@ public class QuickCraftScreen extends Screen {
         g.fill(0, 0, this.width, 24, COLOR_BAR);
         g.fill(0, this.height - 56, this.width, this.height, COLOR_BAR);
 
-        String title = this.font.plainSubstrByWidth("Quick Craft - " + target.getHoverName().getString(), this.width - 232);
+        String qtyLabel = I18n.get("quickcraft.screen.qty");
+        int qtyWidth = this.font.width(qtyLabel);
+        String title = this.font.plainSubstrByWidth(I18n.get("quickcraft.screen.title", target.getHoverName().getString()),
+                this.width - 212 - qtyWidth);
         g.drawString(this.font, title, DEP_X + DEP_W + 6, 8, 0xFFFFFF, false);
-        g.drawString(this.font, "Qty:", this.width - 186, 8, 0xFFFFFF, false);
+        g.drawString(this.font, qtyLabel, this.width - 166 - qtyWidth, 8, 0xFFFFFF, false);
         renderDepositControl(g, mouseX, mouseY);
-        drawTab(g, CT_X, "Controls", overControlsArea(mouseX, mouseY));
-        drawTab(g, HIST_X, "History", historyOpen || overTab(mouseX, mouseY, HIST_X));
+        drawTab(g, CT_X, I18n.get("quickcraft.screen.controls"), overControlsArea(mouseX, mouseY));
+        drawTab(g, HIST_X, I18n.get("quickcraft.screen.history"), historyOpen || overTab(mouseX, mouseY, HIST_X));
 
         int stationNameX = -1;
         if (missingStation != null) {
@@ -820,7 +827,7 @@ public class QuickCraftScreen extends Screen {
             String name = options.isEmpty()
                     ? StationIcons.name(missingStation)
                     : options.get(Math.floorMod(stationSelectedIndex, options.size())).getHoverName().getString();
-            String prefix = "Missing: ";
+            String prefix = I18n.get("quickcraft.screen.missing_station");
             g.drawString(this.font, prefix, 8, 27, COLOR_MISSING, false);
             stationNameX = 8 + this.font.width(prefix);
             int nameW = this.font.width(name);
@@ -829,7 +836,7 @@ public class QuickCraftScreen extends Screen {
         } else if (treeLimited) {
             hoveringStationName = false;
             g.fill(0, 24, this.width, 38, COLOR_BAR);
-            g.drawString(this.font, "Tree limit reached: raise maxTreeNodes or maxTreeDepth in the config", 8, 27, COLOR_MISSING, false);
+            g.drawString(this.font, I18n.get("quickcraft.tree_limit"), 8, 27, COLOR_MISSING, false);
         } else {
             hoveringStationName = false;
         }
@@ -852,7 +859,7 @@ public class QuickCraftScreen extends Screen {
             renderStationDropdown(g, stationNameX);
         } else if (hoveredView != null && eyeHovered) {
             boolean open = peekOpen.contains(ItemKey.of(hoveredView.node.output));
-            g.renderTooltip(this.font, Component.literal(open ? "Hide crafting tree" : "Show crafting tree"), mouseX, mouseY);
+            g.renderTooltip(this.font, Component.translatable(open ? "quickcraft.screen.hide_tree" : "quickcraft.screen.show_tree"), mouseX, mouseY);
         } else if (hoveredView != null) {
             drawTooltip(g, hoveredView, mouseX, mouseY);
         } else if (!depositMenuOpen && overDepositBox(mouseX, mouseY)) {
@@ -860,9 +867,9 @@ public class QuickCraftScreen extends Screen {
         } else if (depositMenuOpen && overDepositMenu(mouseX, mouseY)) {
             drawDepositRowTooltip(g, mouseX, mouseY);
         } else if (overCraftMax(mouseX, mouseY)) {
-            g.renderTooltip(this.font, Component.literal("can craft: " + maxCraftable()), mouseX, mouseY);
+            g.renderTooltip(this.font, Component.translatable("quickcraft.screen.can_craft", maxCraftable()), mouseX, mouseY);
         } else if (!copyMenuOpen && overCopyButton(mouseX, mouseY)) {
-            g.renderTooltip(this.font, Component.literal("Copy material list to clipboard."), mouseX, mouseY);
+            g.renderTooltip(this.font, Component.translatable("quickcraft.screen.copy_tooltip"), mouseX, mouseY);
         }
 
         g.pose().popPose();
@@ -876,13 +883,14 @@ public class QuickCraftScreen extends Screen {
         int maxVisible = 6;
         int visible = Math.min(maxVisible, total);
         int scroll = selected >= maxVisible ? selected - maxVisible + 1 : 0;
-        int w = 172;
+        String header = I18n.get("quickcraft.screen.station_options");
+        int w = Math.max(172, this.font.width(header) + 10);
         int x = Math.min(anchorX, this.width - w - 4);
         int top = 40;
         int h = HEADER_H + visible * ROW_H + 4;
         g.fill(x, top, x + w, top + h, 0xF0080808);
         g.fill(x, top, x + w, top + HEADER_H, 0xF0202020);
-        g.drawString(this.font, "Can craft this at (W/S):", x + 5, top + 3, 0xFFFFFF, false);
+        g.drawString(this.font, header, x + 5, top + 3, 0xFFFFFF, false);
         int listTop = top + HEADER_H + 2;
         for (int r = 0; r < visible; r++) {
             int idx = r + scroll;
@@ -913,7 +921,7 @@ public class QuickCraftScreen extends Screen {
         List<ClientDepositTargets.Target> all = ClientDepositTargets.targets();
         if (depositSearch.isEmpty()) return all;
         String q = depositSearch.toLowerCase(Locale.ROOT);
-        return all.stream().filter(t -> t.label().toLowerCase(Locale.ROOT).contains(q)).toList();
+        return all.stream().filter(t -> t.label().getString().toLowerCase(Locale.ROOT).contains(q)).toList();
     }
 
     private int depositListTop() {
@@ -933,12 +941,12 @@ public class QuickCraftScreen extends Screen {
         int h = HEADER_H + DEP_SEARCH_H + Math.max(1, visible) * ROW_H + 6;
         g.fill(x, top, x + MENU_W, top + h, 0xF0080808);
         g.fill(x, top, x + MENU_W, top + HEADER_H, 0xF0202020);
-        g.drawString(this.font, "Deposit results into:", x + 5, top + 3, 0xFFFFFF, false);
+        g.drawString(this.font, I18n.get("quickcraft.deposit.header"), x + 5, top + 3, 0xFFFFFF, false);
 
         g.fill(x + 4, searchTop + 1, x + MENU_W - 4, searchTop + DEP_SEARCH_H - 1, 0xFF101010);
         g.renderOutline(x + 4, searchTop + 1, MENU_W - 8, DEP_SEARCH_H - 2, 0xFF555555);
         boolean empty = depositSearch.isEmpty();
-        g.drawString(this.font, trim(empty ? "Search..." : depositSearch, 34), x + 8, searchTop + 4,
+        g.drawString(this.font, trim(empty ? I18n.get("quickcraft.deposit.search") : depositSearch, 34), x + 8, searchTop + 4,
                 empty ? 0xFF777777 : 0xFFFFFFFF, false);
 
         String selectedId = ClientDepositTargets.selectedId();
@@ -953,10 +961,10 @@ public class QuickCraftScreen extends Screen {
             else if (rowHover) g.fill(x + 2, ry - 1, x + MENU_W - 2, ry + ROW_H - 3, 0x40FFFFFF);
             ItemStack rowIcon = depositIcon(target);
             if (!rowIcon.isEmpty()) g.renderItem(rowIcon, x + 4, ry);
-            g.drawString(this.font, trim(target.label(), 30), x + 25, ry + 4, isSelected ? 0x55FF55 : 0xFFFFFF, false);
+            g.drawString(this.font, trim(target.label().getString(), 30), x + 25, ry + 4, isSelected ? 0x55FF55 : 0xFFFFFF, false);
         }
         if (total == 0) {
-            g.drawString(this.font, "No matches", x + 8, listTop + 4, 0xFF888888, false);
+            g.drawString(this.font, I18n.get("quickcraft.deposit.no_matches"), x + 8, listTop + 4, 0xFF888888, false);
         }
         if (total > MAX_VISIBLE) {
             if (depositScroll > 0) g.drawString(this.font, "▲", x + MENU_W - 11, listTop, 0xFFFFFF, false);
@@ -974,9 +982,9 @@ public class QuickCraftScreen extends Screen {
         ClientDepositTargets.Target target = depositRowAt(mouseY);
         if (target == null) return;
         List<Component> lines = new ArrayList<>();
-        lines.add(Component.literal(target.label()).withStyle(ChatFormatting.WHITE));
+        lines.add(target.label().copy().withStyle(ChatFormatting.WHITE));
         if (target.totalSlots() >= 0) {
-            lines.add(Component.literal(target.freeSlots() + "/" + target.totalSlots() + " slots available")
+            lines.add(Component.translatable("quickcraft.deposit.free_slots", target.freeSlots(), target.totalSlots())
                     .withStyle(ChatFormatting.GRAY));
         }
         g.renderComponentTooltip(this.font, lines, mouseX, mouseY);
@@ -985,9 +993,9 @@ public class QuickCraftScreen extends Screen {
     private void drawDepositTooltip(GuiGraphics g, int mouseX, int mouseY) {
         ClientDepositTargets.Target selected = ClientDepositTargets.selected();
         List<Component> lines = new ArrayList<>();
-        lines.add(Component.literal("Deposit results").withStyle(ChatFormatting.WHITE));
-        lines.add(Component.literal("Into: " + selected.label()).withStyle(ChatFormatting.GREEN));
-        lines.add(Component.literal("Click to choose a container").withStyle(ChatFormatting.AQUA));
+        lines.add(Component.translatable("quickcraft.deposit.title").withStyle(ChatFormatting.WHITE));
+        lines.add(Component.translatable("quickcraft.deposit.into", selected.label()).withStyle(ChatFormatting.GREEN));
+        lines.add(Component.translatable("quickcraft.deposit.hint").withStyle(ChatFormatting.AQUA));
         g.renderComponentTooltip(this.font, lines, mouseX, mouseY);
     }
 
@@ -1046,7 +1054,14 @@ public class QuickCraftScreen extends Screen {
 
     private boolean overControlsPanelRect(double mouseX, double mouseY) {
         int h = controlsPanelHeight();
-        return in(mouseX, mouseY, CT_X, this.height - 54 - h, CTRL_W, h);
+        return in(mouseX, mouseY, CT_X, this.height - 54 - h, controlsWidth(), h);
+    }
+
+    private int controlsWidth() {
+        int w = Math.max(CTRL_W, this.font.width(I18n.get("quickcraft.legend.dimmed")) + 10);
+        for (String key : LEGEND) w = Math.max(w, this.font.width(I18n.get(key)) + 20);
+        for (String key : CONTROL_LINES) w = Math.max(w, this.font.width(I18n.get(key)) + 10);
+        return w;
     }
 
     private boolean overControlsArea(double mouseX, double mouseY) {
@@ -1064,30 +1079,29 @@ public class QuickCraftScreen extends Screen {
         if (slide <= 0.001) return;
 
         int h = controlsPanelHeight();
+        int w = controlsWidth();
         int x = CT_X;
         int restBottom = this.height - 54;
         int top = restBottom - h + (int) ((1 - slide) * (h + 40));
 
-        g.enableScissor(x, 0, x + CTRL_W, restBottom);
-        g.fill(x, top, x + CTRL_W, top + h, 0xF0080808);
-        g.renderOutline(x, top, CTRL_W, h, 0xFF555555);
+        g.enableScissor(x, 0, x + w, restBottom);
+        g.fill(x, top, x + w, top + h, 0xF0080808);
+        g.renderOutline(x, top, w, h, 0xFF555555);
 
         int pad = 5;
         int[] colors = {COLOR_ROOT, COLOR_HAVE, COLOR_CRAFT, COLOR_MISSING, COLOR_DISABLED};
-        String[] labels = {"End result item", "Items you have", "Items being crafted", "Missing materials",
-                "Can't craft (no station)"};
         int y = top + pad;
         for (int i = 0; i < colors.length; i++) {
-            g.fill(x + pad, y, x + CTRL_W - pad, y + 12, colors[i]);
-            g.drawString(this.font, labels[i], x + pad + 5, y + 2, 0xFFFFFFFF, true);
+            g.fill(x + pad, y, x + w - pad, y + 12, colors[i]);
+            g.drawString(this.font, I18n.get(LEGEND[i]), x + pad + 5, y + 2, 0xFFFFFFFF, true);
             y += 15;
         }
-        g.drawString(this.font, "Dimmed tab = branch can't be finished", x + pad, y, 0xFF808080, false);
+        g.drawString(this.font, I18n.get("quickcraft.legend.dimmed"), x + pad, y, 0xFF808080, false);
         y += 12;
-        g.fill(x + pad, y, x + CTRL_W - pad, y + 1, 0x40FFFFFF);
+        g.fill(x + pad, y, x + w - pad, y + 1, 0x40FFFFFF);
         y += 4;
         for (String line : CONTROL_LINES) {
-            g.drawString(this.font, line, x + pad, y, 0xFFC8C8C8, false);
+            g.drawString(this.font, I18n.get(line), x + pad, y, 0xFFC8C8C8, false);
             y += 11;
         }
         g.disableScissor();
@@ -1122,10 +1136,10 @@ public class QuickCraftScreen extends Screen {
         int top = historyPanelTop();
         g.fill(x, top, x + MENU_W, bottom, 0xF0080808);
         g.fill(x, top, x + MENU_W, top + HEADER_H, 0xF0202020);
-        g.drawString(this.font, "Crafting history", x + 5, top + 3, 0xFFFFFF, false);
+        g.drawString(this.font, I18n.get("quickcraft.history.title"), x + 5, top + 3, 0xFFFFFF, false);
         int listTop = top + HEADER_H + 3;
         if (total == 0) {
-            g.drawString(this.font, "No history yet", x + 8, listTop + 4, 0xFF888888, false);
+            g.drawString(this.font, I18n.get("quickcraft.history.empty"), x + 8, listTop + 4, 0xFF888888, false);
             return;
         }
         for (int r = 0; r < visible; r++) {
@@ -1237,18 +1251,20 @@ public class QuickCraftScreen extends Screen {
         int bottom = this.height - 58;
         g.fill(px, top, px + PANEL_W, bottom, 0xF0080808);
         g.fill(px, top, px + PANEL_W, top + 15, 0xF0202020);
-        g.drawString(this.font, "Ingredients (" + summaryItems.size() + ")", px + 6, top + 4, 0xFFFFFF, false);
+        g.drawString(this.font, I18n.get("quickcraft.ingredients.title", summaryItems.size()), px + 6, top + 4, 0xFFFFFF, false);
 
-        int pinX = px + PANEL_W - 30;
+        int pinX = pinX(px);
+        int pinW = pinWidth();
         int pinY = top + 2;
         boolean pinned = BookmarkOverlay.isActive();
-        g.fill(pinX, pinY, pinX + TAB_BTN_W, pinY + 11, pinned ? 0xFF4A3A10 : 0x80000000);
-        drawTabLabel(g, "Pin", pinX, pinY, pinned ? COLOR_CRAFT : 0xFFB0B0B0);
+        g.fill(pinX, pinY, pinX + pinW, pinY + 11, pinned ? 0xFF4A3A10 : 0x80000000);
+        drawTabLabel(g, I18n.get("quickcraft.ingredients.pin"), pinX, pinY, pinW, pinned ? COLOR_CRAFT : 0xFFB0B0B0);
 
-        int copyX = px + PANEL_W - 60;
+        int copyX = copyX(px);
+        int copyW = copyWidth();
         boolean copyHover = overCopyButton(mouseX, mouseY);
-        g.fill(copyX, pinY, copyX + TAB_BTN_W, pinY + 11, (copyMenuOpen || copyHover) ? 0xFF3A3A3A : 0x80000000);
-        drawTabLabel(g, "Copy", copyX, pinY, 0xFFB0B0B0);
+        g.fill(copyX, pinY, copyX + copyW, pinY + 11, (copyMenuOpen || copyHover) ? 0xFF3A3A3A : 0x80000000);
+        drawTabLabel(g, I18n.get("quickcraft.ingredients.copy"), copyX, pinY, copyW, 0xFFB0B0B0);
 
         int listTop = top + 17;
         int maxRows = Math.max(0, (bottom - listTop) / PANEL_ROW_H);
@@ -1278,22 +1294,45 @@ public class QuickCraftScreen extends Screen {
         if (copyMenuOpen) {
             int dx = copyDropX();
             int dy = COPY_DROP_Y;
+            int dw = copyDropWidth();
             int dh = COPY_OPTIONS.length * COPY_ROW_H + 2;
-            g.fill(dx, dy, dx + COPY_DROP_W, dy + dh, 0xF0080808);
-            g.renderOutline(dx, dy, COPY_DROP_W, dh, 0xFF555555);
+            g.fill(dx, dy, dx + dw, dy + dh, 0xF0080808);
+            g.renderOutline(dx, dy, dw, dh, 0xFF555555);
             for (int r = 0; r < COPY_OPTIONS.length; r++) {
                 int ry = dy + 1 + r * COPY_ROW_H;
                 boolean sel = r == copySelected;
-                boolean hov = in(mouseX, mouseY, dx, ry, COPY_DROP_W, COPY_ROW_H);
-                if (sel) g.fill(dx + 1, ry, dx + COPY_DROP_W - 1, ry + COPY_ROW_H, 0x5000FF00);
-                else if (hov) g.fill(dx + 1, ry, dx + COPY_DROP_W - 1, ry + COPY_ROW_H, 0x40FFFFFF);
-                g.drawString(this.font, COPY_OPTIONS[r], dx + 6, ry + 3, sel ? 0x55FF55 : 0xFFFFFF, false);
+                boolean hov = in(mouseX, mouseY, dx, ry, dw, COPY_ROW_H);
+                if (sel) g.fill(dx + 1, ry, dx + dw - 1, ry + COPY_ROW_H, 0x5000FF00);
+                else if (hov) g.fill(dx + 1, ry, dx + dw - 1, ry + COPY_ROW_H, 0x40FFFFFF);
+                g.drawString(this.font, I18n.get(COPY_OPTIONS[r]), dx + 6, ry + 3, sel ? 0x55FF55 : 0xFFFFFF, false);
             }
         }
     }
 
-    private void drawTabLabel(GuiGraphics g, String text, int x, int y, int color) {
-        g.drawString(this.font, text, x + (TAB_BTN_W - this.font.width(text)) / 2, y + 2, color, false);
+    private void drawTabLabel(GuiGraphics g, String text, int x, int y, int w, int color) {
+        g.drawString(this.font, text, x + (w - this.font.width(text)) / 2, y + 2, color, false);
+    }
+
+    private int pinWidth() {
+        return Math.max(TAB_BTN_W, this.font.width(I18n.get("quickcraft.ingredients.pin")) + 6);
+    }
+
+    private int copyWidth() {
+        return Math.max(TAB_BTN_W, this.font.width(I18n.get("quickcraft.ingredients.copy")) + 6);
+    }
+
+    private int pinX(int px) {
+        return px + PANEL_W - 2 - pinWidth();
+    }
+
+    private int copyX(int px) {
+        return pinX(px) - 2 - copyWidth();
+    }
+
+    private int copyDropWidth() {
+        int w = COPY_DROP_W;
+        for (String key : COPY_OPTIONS) w = Math.max(w, this.font.width(I18n.get(key)) + 12);
+        return w;
     }
 
     private int summaryPx() {
@@ -1318,16 +1357,16 @@ public class QuickCraftScreen extends Screen {
 
     private boolean overCopyButton(double mx, double my) {
         if (!showSummary) return false;
-        return in(mx, my, summaryPx() + PANEL_W - 60, 28, TAB_BTN_W, 11);
+        return in(mx, my, copyX(summaryPx()), 28, copyWidth(), 11);
     }
 
     private int copyDropX() {
-        return summaryPx() + PANEL_W - 4 - COPY_DROP_W;
+        return summaryPx() + PANEL_W - 4 - copyDropWidth();
     }
 
     private int copyRowAt(double mx, double my) {
         int dx = copyDropX();
-        if (mx < dx || mx > dx + COPY_DROP_W) return -1;
+        if (mx < dx || mx > dx + copyDropWidth()) return -1;
         return rowAt(my, COPY_DROP_Y + 1, COPY_ROW_H, COPY_ROW_H, COPY_OPTIONS.length);
     }
 
@@ -1343,8 +1382,8 @@ public class QuickCraftScreen extends Screen {
 
     private void doCopy(int mode) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Quick Craft - ").append(maxMode ? "Max" : String.valueOf(quantity)).append("x ")
-                .append(target.getHoverName().getString()).append(":\n");
+        String amount = maxMode ? I18n.get("quickcraft.max") : quantity + "x";
+        sb.append(I18n.get("quickcraft.copy.header", amount, target.getHoverName().getString())).append('\n');
         for (Map.Entry<ItemKey, Integer> e : summaryItems) {
             int need = e.getValue();
             int have = haveCounts.getOrDefault(e.getKey(), 0);
@@ -1354,8 +1393,7 @@ public class QuickCraftScreen extends Screen {
             } else if (mode == 1) {
                 if (have <= 0) sb.append("- ").append(need).append("x ").append(name).append('\n');
             } else if (have < need) {
-                sb.append("- ").append(name).append(": ").append(have).append('/').append(need)
-                        .append(" (need ").append(need - have).append(" more)\n");
+                sb.append("- ").append(I18n.get("quickcraft.copy.shortage", name, have, need, need - have)).append('\n');
             }
         }
         Minecraft.getInstance().keyboardHandler.setClipboard(sb.toString().stripTrailing());
@@ -1416,7 +1454,7 @@ public class QuickCraftScreen extends Screen {
     }
 
     private boolean overSummaryPin(double mouseX, double mouseY) {
-        return in(mouseX, mouseY, summaryPx() + PANEL_W - 30, 28, TAB_BTN_W, 11);
+        return in(mouseX, mouseY, pinX(summaryPx()), 28, pinWidth(), 11);
     }
 
     private int nodeWidth(CraftNode node) {
@@ -1442,7 +1480,7 @@ public class QuickCraftScreen extends Screen {
 
     private String subLabel(CraftNode node) {
         if (node == root) return "";
-        StringBuilder sub = new StringBuilder(node.catalyst ? "keep " : "need ").append(node.requiredCount);
+        StringBuilder sub = new StringBuilder(I18n.get(node.catalyst ? "quickcraft.node.keep" : "quickcraft.node.need", node.requiredCount));
         if (node.isTagChoice()) sub.append(" •").append(node.tagOptions.size());
         if (node.cyclic) sub.append(" ~");
         if (node.reference != null) sub.append(" ^");
@@ -1468,7 +1506,7 @@ public class QuickCraftScreen extends Screen {
                     : drop.chanceLabel();
             label += "  (" + pct + "%)";
         }
-        if (drop.looting()) label += "  +Loot";
+        if (drop.looting()) label += "  " + I18n.get("quickcraft.mob.looting");
         return label;
     }
 
@@ -1674,45 +1712,49 @@ public class QuickCraftScreen extends Screen {
         List<Component> lines = new ArrayList<>();
         lines.add(node.output.getHoverName());
         if (node == root) {
-            lines.add(Component.literal("End result").withStyle(ChatFormatting.BLUE));
+            lines.add(Component.translatable("quickcraft.tooltip.end_result").withStyle(ChatFormatting.BLUE));
         }
         int have = haveCounts.getOrDefault(ItemKey.of(node.output), 0);
         int fromEmc = emcSupplied.getOrDefault(ItemKey.of(node.output), 0);
-        String requiredLine = "Required: " + node.requiredCount;
+        String required = String.valueOf(node.requiredCount);
         String requiredStacks = stackBreakdown(node.requiredCount, node.output.getMaxStackSize());
-        if (!requiredStacks.isEmpty()) requiredLine += " " + requiredStacks;
-        lines.add(Component.literal(requiredLine).withStyle(ChatFormatting.GRAY));
-        String availLine = "Available: " + have;
-        if (fromEmc > 0) availLine += " (+" + fromEmc + " from EMC)";
-        if (node != root && node.freeStock < have) availLine += " (" + node.freeStock + " free after other uses)";
-        lines.add(Component.literal(availLine).withStyle(ChatFormatting.GRAY));
+        if (!requiredStacks.isEmpty()) required += " " + requiredStacks;
+        lines.add(Component.translatable("quickcraft.tooltip.required", required).withStyle(ChatFormatting.GRAY));
+        MutableComponent availLine = Component.translatable("quickcraft.tooltip.available", have);
+        if (fromEmc > 0) availLine.append(" ").append(Component.translatable("quickcraft.tooltip.from_emc", fromEmc));
+        if (node != root && node.freeStock < have) {
+            availLine.append(" ").append(Component.translatable("quickcraft.tooltip.free_after", node.freeStock));
+        }
+        lines.add(availLine.withStyle(ChatFormatting.GRAY));
         if (node.catalyst) {
-            lines.add(Component.literal("Catalyst - kept, not consumed").withStyle(ChatFormatting.GOLD));
+            lines.add(Component.translatable("quickcraft.tooltip.catalyst").withStyle(ChatFormatting.GOLD));
         }
         ItemStack wear = displayStack(node);
         if (wear.isDamaged()) {
             int left = wear.getMaxDamage() - wear.getDamageValue();
-            lines.add(Component.literal("Durability: " + left + " / " + wear.getMaxDamage()).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("item.durability", left, wear.getMaxDamage()).withStyle(ChatFormatting.GRAY));
         }
         if (isCompleted(node)) {
-            String from;
+            Component from;
             if (have < node.requiredCount && fromEmc > 0) {
-                from = "EMC";
+                from = Component.literal("EMC");
             } else {
                 ItemStack src = sourceIcons.get(ItemKey.of(node.output));
-                from = (src != null && !src.isEmpty()) ? src.getHoverName().getString() : "your inventory";
+                from = (src != null && !src.isEmpty()) ? src.getHoverName() : Component.translatable("quickcraft.deposit.your_inventory");
             }
-            lines.add(Component.literal("You have enough - using " + from).withStyle(ChatFormatting.GREEN));
+            lines.add(Component.translatable("quickcraft.tooltip.using", from).withStyle(ChatFormatting.GREEN));
         }
         if (node.isBlockedByStation()) {
-            lines.add(Component.literal("Needs a " + StationIcons.name(node.requiredStation()) + " nearby").withStyle(ChatFormatting.RED));
+            lines.add(Component.translatable("quickcraft.tooltip.needs_station", StationIcons.name(node.requiredStation()))
+                    .withStyle(ChatFormatting.RED));
         }
         if (node.isTagChoice()) {
-            lines.add(Component.literal("Accepts (W/S or Up/Down to switch):").withStyle(ChatFormatting.AQUA));
+            lines.add(Component.translatable("quickcraft.tooltip.accepts").withStyle(ChatFormatting.AQUA));
             int shown = 0;
             for (ItemStack option : node.tagOptions) {
                 if (shown++ >= 8) {
-                    lines.add(Component.literal("   … +" + (node.tagOptions.size() - 8) + " more").withStyle(ChatFormatting.DARK_GRAY));
+                    lines.add(Component.literal("   … ").append(Component.translatable("quickcraft.more", node.tagOptions.size() - 8))
+                            .withStyle(ChatFormatting.DARK_GRAY));
                     break;
                 }
                 boolean current = option.getItem() == node.output.getItem();
@@ -1725,43 +1767,46 @@ public class QuickCraftScreen extends Screen {
         }
         if (node.emcBuy) {
             long unit = emcSource == null ? 0L : emcSource.value(node.output);
-            String each = unit > 0L ? " - " + EmcFormat.format(BigInteger.valueOf(unit)) + " each" : "";
-            lines.add(Component.literal("Bought with EMC" + each).withStyle(ChatFormatting.AQUA));
-            if (!isCompleted(node)) lines.add(Component.literal("Not enough EMC").withStyle(ChatFormatting.RED));
+            Component bought = unit > 0L
+                    ? Component.translatable("quickcraft.tooltip.bought_emc_each", EmcFormat.format(BigInteger.valueOf(unit)))
+                    : Component.translatable("quickcraft.tooltip.bought_emc");
+            lines.add(bought.copy().withStyle(ChatFormatting.AQUA));
+            if (!isCompleted(node)) lines.add(Component.translatable("quickcraft.tooltip.not_enough_emc").withStyle(ChatFormatting.RED));
         }
         if (node.reference != null) {
-            lines.add(Component.literal("Recipe expanded at its first use in this tree").withStyle(ChatFormatting.DARK_AQUA));
+            lines.add(Component.translatable("quickcraft.tooltip.reference").withStyle(ChatFormatting.DARK_AQUA));
         }
         if (node.truncated) {
-            lines.add(Component.literal("Tree limit reached - raise maxTreeNodes or maxTreeDepth in the config").withStyle(ChatFormatting.RED));
+            lines.add(Component.translatable("quickcraft.tree_limit").withStyle(ChatFormatting.RED));
         }
         if (node.isCraftable()) {
             RecipeOption selected = node.selected();
             if (selected != null) {
-                lines.add(Component.literal("Recipe: " + selected.id()).withStyle(ChatFormatting.DARK_GRAY));
-                lines.add(Component.literal("Yields " + node.resultPerCraft + " per craft (" + StationIcons.name(selected.station()) + ")").withStyle(ChatFormatting.DARK_GRAY));
+                lines.add(Component.translatable("quickcraft.tooltip.recipe", selected.id().toString()).withStyle(ChatFormatting.DARK_GRAY));
+                lines.add(Component.translatable("quickcraft.tooltip.yields", node.resultPerCraft, StationIcons.name(selected.station()))
+                        .withStyle(ChatFormatting.DARK_GRAY));
             } else {
-                lines.add(Component.literal("Supplying yourself (not crafted)").withStyle(ChatFormatting.YELLOW));
+                lines.add(Component.translatable("quickcraft.tooltip.manual").withStyle(ChatFormatting.YELLOW));
             }
             if (node.alternatives.size() > 1) {
-                lines.add(Component.literal("Left-click: swap recipe (" + node.alternatives.size() + " options)").withStyle(ChatFormatting.AQUA));
+                lines.add(Component.translatable("quickcraft.tooltip.swap", node.alternatives.size()).withStyle(ChatFormatting.AQUA));
             }
             if (hasEye(node)) {
-                lines.add(Component.literal("Eye icon: show or hide the crafting tree").withStyle(ChatFormatting.AQUA));
+                lines.add(Component.translatable("quickcraft.tooltip.eye").withStyle(ChatFormatting.AQUA));
             } else if (node != root && !node.truncated && node.reference == null && !node.emcBuy) {
                 boolean expanded = !node.children.isEmpty();
-                lines.add(Component.literal(expanded ? "Right-click: hide recipe (supply yourself)" : "Right-click: reveal recipe")
+                lines.add(Component.translatable(expanded ? "quickcraft.tooltip.hide_recipe" : "quickcraft.tooltip.reveal_recipe")
                         .withStyle(ChatFormatting.AQUA));
             }
         } else {
-            lines.add(Component.literal("Base material - no recipe").withStyle(ChatFormatting.DARK_GRAY));
+            lines.add(Component.translatable("quickcraft.tooltip.base").withStyle(ChatFormatting.DARK_GRAY));
             String origins = originLabel(node);
             if (!origins.isEmpty()) {
-                lines.add(Component.literal("Made in: " + origins).withStyle(ChatFormatting.GRAY));
+                lines.add(Component.translatable("quickcraft.tooltip.made_in", origins).withStyle(ChatFormatting.GRAY));
             }
         }
         if (!ItemKey.of(node.output).equals(ItemKey.of(target))) {
-            lines.add(Component.literal("Middle-click: view this item's tree").withStyle(ChatFormatting.AQUA));
+            lines.add(Component.translatable("quickcraft.tooltip.view_tree").withStyle(ChatFormatting.AQUA));
         }
         g.renderComponentTooltip(this.font, lines, mouseX, mouseY);
     }
@@ -1778,7 +1823,7 @@ public class QuickCraftScreen extends Screen {
             if (i > 0) out.append(", ");
             out.append(labels.get(i));
         }
-        if (labels.size() > shown) out.append(", +").append(labels.size() - shown).append(" more");
+        if (labels.size() > shown) out.append(", ").append(I18n.get("quickcraft.more", labels.size() - shown));
         return out.toString();
     }
 
@@ -1787,32 +1832,33 @@ public class QuickCraftScreen extends Screen {
         MobDropInfo mob = src.mob();
         List<Component> lines = new ArrayList<>();
         lines.add(Component.literal(mob.mobName()).withStyle(ChatFormatting.WHITE));
-        lines.add(Component.literal("Drops " + node.output.getHoverName().getString() + ": " + mobDropLabel(src.drop()))
+        lines.add(Component.translatable("quickcraft.mob.drops", node.output.getHoverName(), mobDropLabel(src.drop()))
                 .withStyle(ChatFormatting.GRAY));
         if (!mob.biomes().isEmpty()) {
             List<String> shownBiomes = mob.biomes().size() > 6 ? mob.biomes().subList(0, 6) : mob.biomes();
             String biomes = String.join(", ", shownBiomes);
             if (mob.biomes().size() > 6) biomes += ", …";
-            lines.add(Component.literal("Biomes: " + biomes).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("quickcraft.mob.biomes", biomes).withStyle(ChatFormatting.GRAY));
         }
         if (mob.lightLevel() != null && !mob.lightLevel().isEmpty()) {
             lines.add(Component.literal(mob.lightLevel()).withStyle(ChatFormatting.GRAY));
         }
         if (mob.exp() != null && !mob.exp().isEmpty()) {
-            lines.add(Component.literal("Experience: " + mob.exp()).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("quickcraft.mob.experience", mob.exp()).withStyle(ChatFormatting.GRAY));
         }
-        lines.add(Component.literal("All drops:").withStyle(ChatFormatting.AQUA));
+        lines.add(Component.translatable("quickcraft.mob.all_drops").withStyle(ChatFormatting.AQUA));
         int shown = 0;
         for (DropLine drop : mob.drops()) {
             if (shown++ >= 12) {
-                lines.add(Component.literal("   … +" + (mob.drops().size() - 12) + " more").withStyle(ChatFormatting.DARK_GRAY));
+                lines.add(Component.literal("   … ").append(Component.translatable("quickcraft.more", mob.drops().size() - 12))
+                        .withStyle(ChatFormatting.DARK_GRAY));
                 break;
             }
             lines.add(Component.literal("  " + drop.item().getHoverName().getString() + "  " + mobDropLabel(drop))
                     .withStyle(ChatFormatting.DARK_GRAY));
         }
         if (node.mobSources.size() > 1) {
-            lines.add(Component.literal("Left-click: next mob (" + node.mobSources.size() + ")").withStyle(ChatFormatting.AQUA));
+            lines.add(Component.translatable("quickcraft.mob.next", node.mobSources.size()).withStyle(ChatFormatting.AQUA));
         }
         g.renderComponentTooltip(this.font, lines, mouseX, mouseY);
     }

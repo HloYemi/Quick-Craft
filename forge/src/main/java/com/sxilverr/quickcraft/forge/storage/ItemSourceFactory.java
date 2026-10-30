@@ -7,6 +7,7 @@ import com.sxilverr.quickcraft.DepositBlacklist;
 import com.sxilverr.quickcraft.config.QuickCraftConfig;
 import com.sxilverr.quickcraft.forge.integration.projecte.AlchBagSource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.CompoundContainer;
@@ -45,7 +46,7 @@ public final class ItemSourceFactory {
 
     public static List<LabeledSource> scan(ServerPlayer player, int scanRange) {
         List<LabeledSource> out = new ArrayList<>();
-        out.add(new LabeledSource(LabeledSource.SELF_ID, "My Inventory", new ItemStack(Items.PLAYER_HEAD),
+        out.add(new LabeledSource(LabeledSource.SELF_ID, Component.translatable("quickcraft.source.my_inventory"), new ItemStack(Items.PLAYER_HEAD),
                 null, new HandlerItemSource(new PlayerMainInvWrapper(player.getInventory())), true));
 
         boolean ae2 = ModList.get().isLoaded("ae2");
@@ -119,7 +120,7 @@ public final class ItemSourceFactory {
                         ResourceLocation blockId = ForgeRegistries.BLOCKS.getKey(block);
                         boolean canDeposit = depositable(be, block, blacklist)
                                 || (extraSources.contains(blockId) && !blacklist.matches(block));
-                        out.add(new LabeledSource("block:" + posKey(pos), icon.getHoverName().getString(),
+                        out.add(new LabeledSource("block:" + posKey(pos), icon.getHoverName(),
                                 icon, pos, new HandlerItemSource(handler, icon), canDeposit));
                     });
                     if (ae2) {
@@ -165,7 +166,7 @@ public final class ItemSourceFactory {
             IItemHandler handler = stack.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
             if (handler == null) continue;
             ItemStack icon = stack.copy();
-            out.add(new LabeledSource("extra:" + i, stack.getHoverName().getString(), icon, null,
+            out.add(new LabeledSource("extra:" + i, stack.getHoverName(), icon, null,
                     new HandlerItemSource(handler, icon), !blacklist.matches(stack.getItem())));
         }
     }
@@ -182,7 +183,7 @@ public final class ItemSourceFactory {
         ItemStack blockItem = new ItemStack(block);
         ItemStack icon = blockItem.isEmpty() ? new ItemStack(Items.CHEST) : blockItem;
         IItemHandler handler = new InvWrapper(container);
-        out.add(new LabeledSource("block:" + posKey(primary), "Double Chest", icon, primary,
+        out.add(new LabeledSource("block:" + posKey(primary), Component.translatable("quickcraft.source.double_chest"), icon, primary,
                 new HandlerItemSource(handler, icon), depositable(be, block, blacklist)));
     }
 

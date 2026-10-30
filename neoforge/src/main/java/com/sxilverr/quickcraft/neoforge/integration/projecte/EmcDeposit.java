@@ -5,6 +5,7 @@ import com.sxilverr.quickcraft.config.QuickCraftConfig;
 import com.sxilverr.quickcraft.storage.ItemSource;
 import com.sxilverr.quickcraft.storage.LabeledSource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -47,7 +48,7 @@ public final class EmcDeposit {
         ItemStack tablet = ProjectEIntegration.findTablet(player);
         if (!tablet.isEmpty()) {
             ItemStack icon = tablet.copyWithCount(1);
-            out.add(new LabeledSource(TABLET_ID, icon.getHoverName().getString(), icon, null, SINK, true));
+            out.add(new LabeledSource(TABLET_ID, icon.getHoverName(), icon, null, SINK, true));
         }
 
         BlockPos table = ProjectEIntegration.findTable(player.level(), player.blockPosition(),
@@ -55,16 +56,16 @@ public final class EmcDeposit {
         if (table != null) {
             Block block = ProjectEIntegration.tableBlock();
             ItemStack icon = block == null ? ItemStack.EMPTY : new ItemStack(block);
-            String name = icon.isEmpty() ? "Transmutation Table" : icon.getHoverName().getString();
+            Component name = icon.isEmpty() ? Component.translatable("block.projecte.transmutation_table") : icon.getHoverName();
             out.add(new LabeledSource(TABLE_ID, name, icon, table, SINK, true));
         }
         return out;
     }
 
-    public static String label(String id, List<LabeledSource> targets) {
+    public static Component label(String id, List<LabeledSource> targets) {
         for (LabeledSource target : targets) {
             if (target.id().equals(id)) return target.name();
         }
-        return "your EMC";
+        return Component.translatable("quickcraft.deposit.your_emc");
     }
 }

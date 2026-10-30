@@ -28,7 +28,7 @@ public final class QuickCraftNeoForge {
         modBus.addListener(QuickCraftNetwork::register);
         NeoForge.EVENT_BUS.addListener(QuickCraftNeoForge::onServerStopped);
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            NeoForgeClientEvents.init(modBus);
+            NeoForgeClientEvents.init(modBus, container);
         }
     }
 

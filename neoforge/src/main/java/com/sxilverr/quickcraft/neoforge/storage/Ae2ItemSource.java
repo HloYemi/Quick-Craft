@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -56,7 +57,7 @@ public final class Ae2ItemSource implements ItemSource {
         ItemSource source = fromGrid(gridOf(host), seenNetworks, player, icon);
         if (source == null) return null;
         BlockPos pos = be.getBlockPos();
-        return new LabeledSource("ae2:" + ItemSourceFactory.posKey(pos), "ME System", icon, pos, source, true);
+        return new LabeledSource("ae2:" + ItemSourceFactory.posKey(pos), Component.translatable("quickcraft.source.me_system"), icon, pos, source, true);
     }
 
     public static void addWireless(ServerPlayer player, Set<Object> seenNetworks, List<LabeledSource> out) {
@@ -74,7 +75,7 @@ public final class Ae2ItemSource implements ItemSource {
             if (!withinWirelessRange(grid, player)) continue;
             ItemStack icon = stack.copy();
             ItemSource source = fromGrid(grid, seenNetworks, player, icon);
-            if (source != null) out.add(new LabeledSource("ae2w:" + i, "ME System (Wireless)", icon, null, source, true));
+            if (source != null) out.add(new LabeledSource("ae2w:" + i, Component.translatable("quickcraft.source.wireless", Component.translatable("quickcraft.source.me_system")), icon, null, source, true));
         }
     }
 

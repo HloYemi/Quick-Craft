@@ -2,6 +2,7 @@ package com.sxilverr.quickcraft.craft;
 
 import com.sxilverr.quickcraft.crafting.ItemKey;
 import com.sxilverr.quickcraft.storage.LabeledSource;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -13,10 +14,10 @@ import java.util.Map;
 public final class Deposit {
     private final List<LabeledSource> sinks;
     private final ServerPlayer player;
-    private final Map<String, Integer> tally = new LinkedHashMap<>();
+    private final Map<Component, Integer> tally = new LinkedHashMap<>();
     private int dropped;
     private int byproducts;
-    private String emcLabel = "your EMC";
+    private Component emcLabel = Component.translatable("quickcraft.deposit.your_emc");
 
     private Deposit(List<LabeledSource> sinks, ServerPlayer player) {
         this.sinks = sinks;
@@ -58,8 +59,8 @@ public final class Deposit {
         }
     }
 
-    public void setEmcLabel(String label) {
-        if (label != null && !label.isEmpty()) this.emcLabel = label;
+    public void setEmcLabel(Component label) {
+        if (label != null) this.emcLabel = label;
     }
 
     public void toEmc(int amount, boolean target) {
@@ -68,8 +69,8 @@ public final class Deposit {
         else byproducts += amount;
     }
 
-    private static String feedbackName(LabeledSource sink) {
-        return sink.isSelf() ? "your inventory" : sink.name();
+    private static Component feedbackName(LabeledSource sink) {
+        return sink.isSelf() ? Component.translatable("quickcraft.deposit.your_inventory") : sink.name();
     }
 
     public List<CraftSummary.Placement> placements() {

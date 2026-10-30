@@ -1,5 +1,6 @@
 package com.sxilverr.quickcraft.client;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -7,10 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ClientDepositTargets {
-    public record Target(String id, String label, ItemStack icon, int freeSlots, int totalSlots) {
+    public record Target(String id, Component label, ItemStack icon, int freeSlots, int totalSlots) {
     }
 
-    private static final Target DEFAULT = new Target("self", "My Inventory", new ItemStack(Items.PLAYER_HEAD), -1, -1);
+    private static final Target DEFAULT = new Target("self", Component.translatable("quickcraft.source.my_inventory"), new ItemStack(Items.PLAYER_HEAD), -1, -1);
 
     private static List<Target> targets = List.of(DEFAULT);
     private static String selectedId = "self";

@@ -6,6 +6,7 @@ import com.sxilverr.quickcraft.crafting.ItemKey;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -36,7 +37,8 @@ public final class BookmarkOverlay {
     private static final int LOC_LW = 22;
     private static final int LOC_LH = 10;
     private static final double[][] CORNERS = {{1, 0}, {0, 0}, {0, 1}, {1, 1}};
-    private static final String[] CORNER_LABELS = {"TR", "TL", "BL", "BR"};
+    private static final String[] CORNER_LABELS = {"quickcraft.pinned.top_right", "quickcraft.pinned.top_left",
+            "quickcraft.pinned.bottom_left", "quickcraft.pinned.bottom_right"};
 
     private static boolean active;
     private static int cornerIndex;
@@ -176,7 +178,7 @@ public final class BookmarkOverlay {
 
         boolean locHover = interactive && inLocalRect(mouseX, mouseY, ox, oy, LOC_LX, LOC_LY, LOC_LW, LOC_LH);
         g.fill(LOC_LX, LOC_LY, LOC_LX + LOC_LW, LOC_LY + LOC_LH, locHover ? 0xFF3060AA : 0x80000000);
-        g.drawString(mc.font, CORNER_LABELS[cornerIndex], LOC_LX + 3, LOC_LY + 1, 0xFFFFFFFF, false);
+        g.drawString(mc.font, I18n.get(CORNER_LABELS[cornerIndex]), LOC_LX + 3, LOC_LY + 1, 0xFFFFFFFF, false);
 
         int bodyTop = HEADER_H + 1;
         boolean anim = QuickCraftConfig.pinnedListAnimation();

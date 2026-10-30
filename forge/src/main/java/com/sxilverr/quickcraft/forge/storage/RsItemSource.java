@@ -13,6 +13,7 @@ import com.refinedmods.refinedstorage.api.util.StackListEntry;
 import com.refinedmods.refinedstorage.capability.NetworkNodeProxyCapability;
 import com.refinedmods.refinedstorage.item.NetworkItem;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -55,7 +56,7 @@ public final class RsItemSource implements ItemSource {
         ItemSource source = fromNetwork(node.getNetwork(), seenNetworks, icon);
         if (source == null) return null;
         BlockPos pos = be.getBlockPos();
-        return new LabeledSource("rs:" + ItemSourceFactory.posKey(pos), "RS System", icon, pos, source, true);
+        return new LabeledSource("rs:" + ItemSourceFactory.posKey(pos), Component.translatable("quickcraft.source.rs_system"), icon, pos, source, true);
     }
 
     public static void addWireless(ServerPlayer player, Set<Object> seenNetworks, List<LabeledSource> out) {
@@ -70,7 +71,7 @@ public final class RsItemSource implements ItemSource {
                 netItem.applyNetwork(player.getServer(), stack, network -> {
                     if (!withinWirelessRange(network, player)) return;
                     ItemSource source = fromNetwork(network, seenNetworks, wirelessIcon);
-                    if (source != null) out.add(new LabeledSource("rsw:" + slot, "RS System (Wireless)",
+                    if (source != null) out.add(new LabeledSource("rsw:" + slot, Component.translatable("quickcraft.source.wireless", Component.translatable("quickcraft.source.rs_system")),
                             wirelessIcon, null, source, true));
                 }, error -> {
                 });

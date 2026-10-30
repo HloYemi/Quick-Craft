@@ -22,5 +22,5 @@ public interface ConfigBuilder {
 
     Supplier<Double> defineInRange(String name, double def, double min, double max);
 
-    Supplier<List<? extends String>> defineList(String name, List<String> def, Predicate<Object> validator);
+    Supplier<List<? extends String>> defineList(String name, List<String> def, String newElement, Predicate<Object> validator);
 }

@@ -14,72 +14,73 @@ public final class CraftFeedback {
     public static Component of(CraftSummary summary, ItemStack target) {
         Component name = target.getHoverName();
         if (summary.aborted()) {
-            return Component.literal("Quick Craft: could not pull " + summary.blockedCount() + "x ")
-                    .append(summary.blocked().getHoverName())
-                    .append(Component.literal(" out of storage, nothing was crafted")).withStyle(ChatFormatting.RED);
+            return Component.translatable("quickcraft.chat.aborted", summary.blockedCount(), summary.blocked().getHoverName())
+                    .withStyle(ChatFormatting.RED);
         }
         if (summary.full() || (summary.partial() && summary.requested() >= CraftPlanner.MAX_QUANTITY)) {
-            MutableComponent msg = Component.literal("Quick Craft: crafted " + summary.crafted() + "x ")
-                    .append(name).withStyle(ChatFormatting.GREEN);
+            MutableComponent msg = Component.translatable("quickcraft.chat.crafted", summary.crafted(), name)
+                    .withStyle(ChatFormatting.GREEN);
             return appendPlacements(msg, summary);
         }
         if (summary.partial()) {
-            MutableComponent msg = Component.literal("Quick Craft: crafted " + summary.crafted() + "/" + requestedLabel(summary.requested()) + " ")
-                    .append(name).append(Component.literal(" - ran out of materials" + limitHint(summary))).withStyle(ChatFormatting.YELLOW);
+            MutableComponent msg = Component.translatable("quickcraft.chat.partial", summary.crafted(),
+                    requestedLabel(summary.requested()), name).append(limitHint(summary)).withStyle(ChatFormatting.YELLOW);
             return appendBlockers(appendPlacements(msg, summary), summary);
         }
         if (summary.missingStation() != null) {
-            return Component.literal("Quick Craft: needs a " + summary.missingStation() + " nearby to craft ")
-                    .append(name).withStyle(ChatFormatting.RED);
+            return Component.translatable("quickcraft.chat.needs_station", summary.missingStation(), name)
+                    .withStyle(ChatFormatting.RED);
         }
-        MutableComponent msg = Component.literal("Quick Craft: not enough materials to craft ")
-                .append(name).append(Component.literal(limitHint(summary))).withStyle(ChatFormatting.RED);
+        MutableComponent msg = Component.translatable("quickcraft.chat.not_enough", name)
+                .append(limitHint(summary)).withStyle(ChatFormatting.RED);
         return appendBlockers(msg, summary);
     }
 
     private static MutableComponent appendBlockers(MutableComponent msg, CraftSummary summary) {
         List<CraftPlanner.Blocker> blockers = summary.blockers();
         if (blockers.isEmpty()) return msg;
-        MutableComponent tail = Component.literal(" - missing: ");
+        MutableComponent list = Component.empty();
         int shown = Math.min(3, blockers.size());
         for (int i = 0; i < shown; i++) {
             CraftPlanner.Blocker blocker = blockers.get(i);
-            if (i > 0) tail.append(Component.literal(", "));
-            tail.append(Component.literal(blocker.missing() + "x ")).append(blocker.key().toStack(1).getHoverName())
-                    .append(Component.literal(blocker.reason().label));
+            if (i > 0) list.append(", ");
+            list.append(blocker.missing() + "x ").append(blocker.key().toStack(1).getHoverName())
+                    .append(blocker.reason().suffix());
         }
-        if (blockers.size() > shown) tail.append(Component.literal(", +" + (blockers.size() - shown) + " more"));
-        return msg.append(tail.withStyle(ChatFormatting.GRAY));
+        if (blockers.size() > shown) list.append(", ").append(Component.translatable("quickcraft.more", blockers.size() - shown));
+        return msg.append(Component.literal(" - ").append(Component.translatable("quickcraft.chat.missing", list))
+                .withStyle(ChatFormatting.GRAY));
     }
 
-    private static String limitHint(CraftSummary summary) {
-        return summary.treeLimited() ? " (recipe tree hit the maxTreeNodes limit, raise it in the config)" : "";
+    private static Component limitHint(CraftSummary summary) {
+        if (!summary.treeLimited()) return Component.empty();
+        return Component.literal(" ").append(Component.translatable("quickcraft.chat.tree_limit"));
     }
 
     private static MutableComponent appendPlacements(MutableComponent msg, CraftSummary summary) {
         List<CraftSummary.Placement> placements = summary.placements();
         if (placements.isEmpty() && summary.dropped() <= 0 && summary.byproducts() <= 0) return msg;
-        StringBuilder sb = new StringBuilder(" → ");
+        MutableComponent parts = Component.literal(" → ");
         boolean first = true;
         for (CraftSummary.Placement placement : placements) {
-            if (!first) sb.append(", ");
-            sb.append(placement.count()).append(" to ").append(placement.where());
+            if (!first) parts.append(", ");
+            parts.append(Component.translatable("quickcraft.chat.placed", placement.count(), placement.where()));
             first = false;
         }
         if (summary.dropped() > 0) {
-            if (!first) sb.append(", ");
-            sb.append(summary.dropped()).append(" dropped at your feet");
+            if (!first) parts.append(", ");
+            parts.append(Component.translatable("quickcraft.chat.dropped", summary.dropped()));
             first = false;
         }
         if (summary.byproducts() > 0) {
-            if (!first) sb.append(", ");
-            sb.append("+").append(summary.byproducts())
-                    .append(summary.byproducts() == 1 ? " leftover item" : " leftover items");
+            if (!first) parts.append(", ");
+            String key = summary.byproducts() == 1 ? "quickcraft.chat.leftover" : "quickcraft.chat.leftovers";
+            parts.append(Component.translatable(key, summary.byproducts()));
         }
-        return msg.append(Component.literal(sb.toString()).withStyle(ChatFormatting.GRAY));
+        return msg.append(parts.withStyle(ChatFormatting.GRAY));
     }
 
-    private static String requestedLabel(int requested) {
-        return requested >= CraftPlanner.MAX_QUANTITY ? "Max" : requested + "x";
+    private static Component requestedLabel(int requested) {
+        return requested >= CraftPlanner.MAX_QUANTITY ? Component.translatable("quickcraft.max") : Component.literal(requested + "x");
     }
 }
