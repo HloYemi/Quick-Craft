@@ -39,3 +39,6 @@ type = "optional"
 versionRange = "*"
 ordering = "AFTER"
 side = "CLIENT"
+
+[[mixins]]
+config = "yourname.crack.mixins.json"
