@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.yourname.crack.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "StationsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
