@@ -2,16 +2,13 @@ package com.yourname.crack;
 
 /**
  * Quick Craft 破解开关。
- *
- * <p>ALWAYS_ALLOW_STATIONS = true 时：</p>
- * <ul>
- *     <li>所有 {@code Station} 恒视为"已拥有"；</li>
- *     <li>3x3 配方、锻造、石切、TACZ、Avaritia、ExtendedCrafting 等全部可合成；</li>
- *     <li>玩家无需附近有任何工作方块，无需携带工作台物品，无需装备升级件。</li>
- * </ul>
  */
 public final class CrackConfig {
+    /** 放开所有工作站方块要求（合成台/锻造台/石切台/TACZ/…）。 */
     public static final boolean ALWAYS_ALLOW_STATIONS = true;
+
+    /** 放开 ProjectE 的 EMC 来源检测（不再要求背包有 tablet 或附近有转化桌）。 */
+    public static final boolean ALWAYS_ALLOW_EMC_SOURCE = true;
 
     private CrackConfig() {
     }
