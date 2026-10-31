@@ -3,7 +3,8 @@
   "package": "com.yourname.crack.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "StationsMixin"
+    "StationsMixin",
+    "ProjectEIntegrationMixin"
   ],
   "injectors": {
     "defaultRequire": 1
