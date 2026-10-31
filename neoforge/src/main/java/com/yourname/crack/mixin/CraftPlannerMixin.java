@@ -1,11 +1,11 @@
 package com.yourname.crack.mixin;
 
-import com.sxilverr.quickcraft.craft.CraftNode;
 import com.sxilverr.quickcraft.craft.CraftPlanner;
 import com.sxilverr.quickcraft.craft.EmcBank;
 import com.sxilverr.quickcraft.craft.EmcSource;
 import com.sxilverr.quickcraft.craft.VirtualPool;
 import com.sxilverr.quickcraft.crafting.Availability;
+import com.sxilverr.quickcraft.crafting.CraftNode;
 import com.sxilverr.quickcraft.crafting.ItemKey;
 import com.sxilverr.quickcraft.crafting.Stations;
 import com.sxilverr.quickcraft.crafting.TreeBuilder;
@@ -26,20 +26,6 @@ import java.util.Set;
 
 /**
  * 目标物本身有 EMC 值时，直接买，跳过合成。
- *
- * <p>问题：楼梯配方是"6 木板 → 4 楼梯"，下单 1 个楼梯时必须合成一整批，
- * 消耗 6 木板 = 48 EMC，多出的 3 个退回 EMC。用户看到"下单 1 消耗 48 EMC"，
- * 体验很差。</p>
- *
- * <p>修复：如果 target 本身已学习且有 EMC 值，且余额够直接买，直接构造
- * 一个"全部购买"的 Plan，跳过 {@code CraftExecutor.simulate}。</p>
- *
- * <p>效果：</p>
- * <ul>
- *     <li>下单 1 楼梯 → 消耗 ~12 EMC，得 1 楼梯（不合成）；</li>
- *     <li>下单 10 楼梯 → 消耗 ~120 EMC，得 10 楼梯；</li>
- *     <li>没学习过 / 无 EMC 值 / 余额不足 → 回退到原合成逻辑。</li>
- * </ul>
  *
  * <p>开关：{@link CrackConfig#BUY_TARGET_FIRST}。</p>
  */
@@ -70,7 +56,7 @@ public abstract class CraftPlannerMixin {
 
         BigInteger available = budget == null ? emc.emc() : budget;
         BigInteger cost = BigInteger.valueOf(unit).multiply(BigInteger.valueOf(need));
-        if (cost.compareTo(available) > 0) return;   // 余额不够买全部，回退到合成
+        if (cost.compareTo(available) > 0) return;
 
         builder.setEmcLookup(emc);
         CraftNode root = builder.build(target, qty, overrides, ingredientChoices, availability, stations,
