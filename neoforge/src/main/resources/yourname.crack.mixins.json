@@ -5,7 +5,8 @@
   "mixins": [
     "StationsMixin",
     "ProjectEIntegrationMixin",
-    "DepositMixin"
+    "DepositMixin",
+    "CraftPlannerMixin"
   ],
   "injectors": { "defaultRequire": 1 }
 }
