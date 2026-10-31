@@ -4,9 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "StationsMixin",
-    "ProjectEIntegrationMixin"
+    "ProjectEIntegrationMixin",
+    "DepositMixin"
   ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+  "injectors": { "defaultRequire": 1 }
 }
